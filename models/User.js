@@ -1,12 +1,12 @@
 let mongoose = require("mongoose");
 let SChema = mongoose.Schema;
 const User = new SChema({
-  FullName: { type: String, required: true },
-  Email: { type: String, unique: true },
-  Password: { type: String, required: true },
-  Category: { type: String, required: true },
-  Phone: { type: String, required: true },
-  Address: { type: String, required: true }
+  fullName: { type: String, required: true },
+  email: { type: String, unique: true },
+  password: { type: String, required: true },
+  category: { type: String, required: true },
+  phone: { type: String, required: true },
+  address: { type: String, required: true }
 });
 const Users = mongoose.model("Details", User);
 module.exports = Users;
