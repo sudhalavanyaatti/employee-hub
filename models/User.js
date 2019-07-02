@@ -1,12 +1,13 @@
-let mongoose = require("mongoose");
+let mongoose = require('mongoose');
 let SChema = mongoose.Schema;
 const User = new SChema({
-  fullName: { type: String, required: true },
-  email: { type: String, unique: true },
-  password: { type: String, required: true },
-  category: { type: String, required: true },
-  phone: { type: String, required: true },
-  address: { type: String, required: true }
+  fullName: {type: String, required: true},
+  email: {type: String, unique: true},
+  password: {type: String, required: true},
+  category: {type: String, required: true},
+  phone: {type: String, required: true},
+  address: {type: String, required: true},
+  twilioStatus: {type: Boolean, default: false}
 });
-const Users = mongoose.model("Details", User);
+const Users = mongoose.model('user', User);
 module.exports = Users;
