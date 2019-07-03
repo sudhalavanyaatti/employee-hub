@@ -1,35 +1,35 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const userController = require("../controllers/userController");
-const authy = require("authy")("ha8lM5Mj5JuCI6adHAPWWeEf7itHjWZJ");
-const events = require("events");
-const fetch = require("node-fetch");
+const userController = require('../controllers/userController');
+const authy = require('authy')('ha8lM5Mj5JuCI6adHAPWWeEf7itHjWZJ');
+const events = require('events');
+const fetch = require('node-fetch');
 
 //mail transfer
-const sgMail = require("@sendgrid/mail");
+const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 //mailtranfer event declaration
 let eventEmitter = new events.EventEmitter();
 let EventHandler = function mailtransfer(mail, name) {
-  const msg = {
+  const msg = { 
     to: mail,
-    from: "sudhalova@gmail.com",
-    template_id: "d-cebc2e244bd6424f8dec3a091f25ac8a",
+    from: 'sudhalova@gmail.com',
+    template_id: 'd-cebc2e244bd6424f8dec3a091f25ac8a',
     dynamic_template_data: {
       name: name
     }
   };
   sgMail.send(msg).then(function() {
-    console.log("message send successfully!!");
+    console.log('message send successfully!!');
   });
 };
-eventEmitter.on("mailtransfer", EventHandler);
+eventEmitter.on('mailtransfer', EventHandler);
 
-router.get("/", (req, res, next) => {
-  res.render("index", { title: "Express" });
+router.get('/', (req, res, next) => {
+  res.render('index', {title: 'Express'});
 });
 
-router.post("/register", (req, res) => {
+router.post('/register', (req, res) => {
   userController.create(req.body, (err, userResponse) => {
     if (err) throw err;
     //write twilio code here
@@ -38,12 +38,12 @@ router.post("/register", (req, res) => {
       .phones()
       .verification_start(
         phone,
-        "+91",
-        { via: "sms", locale: "en", code_length: "6" },
+        '+91',
+        {via: 'sms', locale: 'en', code_length: '6'},
         (err, otpResponse) => {
-          if (err) throw err;
+          if (err) console.log(err);
           res.json({
-            message: "success",
+            message: 'success',
             response: otpResponse
           });
         }
@@ -51,43 +51,43 @@ router.post("/register", (req, res) => {
   });
 });
 
-router.post("/validate-otp", (req, res) => {
+router.post('/validate-otp', (req, res) => {
   console.log(req.body);
   let otp = req.body.otp;
   let phone = req.body.phone;
   authy
     .phones()
-    .verification_check(phone, "+91", otp, (err, statusResponse) => {
+    .verification_check(phone, '+91', otp, (err, statusResponse) => {
       console.log(err);
       if (err) return err;
       console.log(statusResponse);
       if (statusResponse) {
-        let data1 = { phone: req.body.phone };
-        let data2 = { $set: { twilioStatus: "true" } };
+        let data1 = {phone: req.body.phone};
+        let data2 = {$set: {twilioStatus: 'true'}};
         userController.findOneAndUpdate(data1, data2, (err, updateResult) => {
           if (err) throw err;
           console.log(updateResult);
           if (updateResult.twilioStatus) {
             // Mailtransfer event FIRING
             eventEmitter.emit(
-              "mailtransfer",
+              'mailtransfer',
               updateResult.email,
               updateResult.fullName
             );
             const data = {
               email_address: {
                 address: updateResult.email,
-                permission_to_send: "implicit"
+                permission_to_send: 'implicit'
               },
-              create_source: "Account"
+              create_source: 'Account'
             };
-            fetch("https://api.cc.email/v3/contacts", {
-              method: "post",
+            fetch('https://api.cc.email/v3/contacts', {
+              method: 'post',
               body: JSON.stringify(data),
               headers: {
-                "cache-control": "no-cache",
-                Authorization: "Bearer 5anDHuoU2mXhewL16yobo8fdHanV",
-                "Content-Type": "application/json"
+                'cache-control': 'no-cache',
+                Authorization: 'Bearer 5anDHuoU2mXhewL16yobo8fdHanV',
+                'Content-Type': 'application/json'
               }
             })
               .then(res => res.json())
