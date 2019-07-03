@@ -4,6 +4,8 @@ const userController = require("../controllers/userController");
 const authy = require("authy")("ha8lM5Mj5JuCI6adHAPWWeEf7itHjWZJ");
 const events = require("events");
 const fetch = require("node-fetch");
+const jwt = require("jsonwebtoken");
+const secret = "MnYusErVoE9eY4f";
 
 //mail transfer
 const sgMail = require("@sendgrid/mail");
@@ -100,22 +102,37 @@ router.post("/validate-otp", (req, res) => {
       }
     });
 });
+router.post("/login", (req, res) => {
+  userController.findOne({ email: req.body.email }, (err, user) => {
+    if (!user) {
+      console.log("No user found");
+    }
+    var token = jwt.sign({ id: user._id }, secret, {
+      expiresIn: 86400
+    });
+    res.json({
+      token: token,
+      data: user
+    });
+  });
+});
+router.get("/details", (req, res) => {
+  let token1 = req.headers["x-access-token"];
 
-// router.post("/test", (req, res) => {
-//   fetch("https://api.cc.email/v3/contacts", {
-//     method: "post",
-//     body: JSON.stringify(req.body),
-//     headers: {
-//       "cache-control": "no-cache",
-//       Authorization: "Bearer 5anDHuoU2mXhewL16yobo8fdHanV",
-//       "Content-Type": "application/json"
-//     }
-//   })
-//     .then(res => res.json())
-//     .then(response => {
-//       console.log(response);
-//       res.send(response);
-//     });
-// });
+  if (!token1)
+    return res.status(401).send({ auth: false, message: "No token provided." });
+  jwt.verify(token1, secret, (err, data) => {
+    if (err) {
+      return res.send({ auth: false, message: "Token not matched" });
+    }
+    console.log(data);
+    userController.findById(data.id, (err, details) => {
+      console.log(details);
+      res.json({
+        details: details
+      });
+    });
+  });
+});
 
 module.exports = router;
