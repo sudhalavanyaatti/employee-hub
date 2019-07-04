@@ -11,10 +11,7 @@
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.4",
     "cors": "^2.8.5",
-<<<<<<< HEAD
     "crypto": "^1.0.1",
-=======
->>>>>>> b85446b7b298f8d8ada0c7d31a88ea93c039fa8d
     "debug": "~2.6.9",
     "express": "^4.17.1",
     "express-generator": "^4.16.1",

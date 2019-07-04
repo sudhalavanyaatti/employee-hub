@@ -1,7 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const userController = require("../controllers/userController");
-const authy = require("authy")("ha8lM5Mj5JuCI6adHAPWWeEf7itHjWZJ");
+//const authy = require("authy")("ha8lM5Mj5JuCI6adHAPWWeEf7itHjWZJ");
+const authy = require("authy")("Xyas82sTxYYbqlP8142TeSwVfGCcaf6V");
 const events = require("events");
 const fetch = require("node-fetch");
 let crypto = require("crypto");
@@ -10,7 +11,9 @@ const secret = "MnYusErVoE9eY4f";
 
 //mail transfer
 const sgMail = require("@sendgrid/mail");
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+sgMail.setApiKey(
+  "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"
+);
 //mailtranfer event declaration
 let eventEmitter = new events.EventEmitter();
 let EventHandler = function mailtransfer(mail, name) {
@@ -34,7 +37,7 @@ router.get("/", (req, res, next) => {
 
 router.post("/register", async (req, res) => {
   let mykey = await crypto.createCipher("aes-128-cbc", req.body.password);
-  let mystr = await mykey.update("abc", "utf8", "hex");
+  let mystr = await mykey.update(req.body.password, "utf8", "hex");
   mystr += await mykey.final("hex");
   req.body.password = mystr;
   userController.create(req.body, (err, userResponse) => {
@@ -57,23 +60,22 @@ router.post("/register", async (req, res) => {
       );
   });
 });
-
 router.post("/validate-otp", (req, res) => {
-  console.log(req.body);
+  console.log("body", req.body);
   let otp = req.body.otp;
   let phone = req.body.phone;
   authy
     .phones()
     .verification_check(phone, "+91", otp, (err, statusResponse) => {
-      console.log(err);
+      console.log("err", err);
       if (err) return err;
-      console.log(statusResponse);
+      console.log("status", statusResponse);
       if (statusResponse) {
         let data1 = { phone: req.body.phone };
         let data2 = { $set: { twilioStatus: "true" } };
         userController.findOneAndUpdate(data1, data2, (err, updateResult) => {
           if (err) throw err;
-          console.log(updateResult);
+          console.log("update result", updateResult);
           if (updateResult.twilioStatus) {
             // Mailtransfer event FIRING
             eventEmitter.emit(
@@ -81,6 +83,7 @@ router.post("/validate-otp", (req, res) => {
               updateResult.email,
               updateResult.fullName
             );
+            console.log("hello", updateResult.email);
             const data = {
               email_address: {
                 address: updateResult.email,
@@ -93,13 +96,13 @@ router.post("/validate-otp", (req, res) => {
               body: JSON.stringify(data),
               headers: {
                 "cache-control": "no-cache",
-                Authorization: "Bearer 5anDHuoU2mXhewL16yobo8fdHanV",
+                Authorization: "Bearer fum2yrleTk1WX55gnFbXwn7hQPLU",
                 "Content-Type": "application/json"
               }
             })
               .then(res => res.json())
               .then(response => {
-                console.log(response);
+                console.log("response", response);
                 res.send(response);
               });
           }
@@ -109,9 +112,16 @@ router.post("/validate-otp", (req, res) => {
 });
 router.post("/login", (req, res) => {
   userController.findOne({ email: req.body.email }, (err, user) => {
+    console.log("password", user.password);
     if (!user) {
       console.log("No user found");
     }
+    let mykey = crypto.createDecipher("aes-128-cbc", req.body.password);
+    let mystr = mykey.update(user.password, "hex", "utf8");
+
+    mystr += mykey.final("utf8");
+    console.log(mystr);
+
     var token = jwt.sign({ id: user._id }, secret, {
       expiresIn: 86400
     });
@@ -121,6 +131,7 @@ router.post("/login", (req, res) => {
     });
   });
 });
+
 router.get("/details", (req, res) => {
   let token1 = req.headers["x-access-token"];
 
@@ -140,7 +151,24 @@ router.get("/details", (req, res) => {
   });
 });
 
-router.get("/auth2", (req, res) => {
-  console.log(req);
+router.get("/auth2", async (req, res) => {
+  const clientId = "0fb9cdf0-6668-48d8-90cf-215e4d393d59";
+  const clientSecret = "vSB9bo18YvPj4NSDo4qQjA";
+  const redirectURI = "http://localhost:3001/test";
+  const baseURL = "https://api.cc.email/v3/idfed";
+  const authURL =
+    baseURL +
+    "?client_id=" +
+    clientId +
+    "&scope=contact_data&response_type=token" +
+    "&redirect_uri=" +
+    redirectURI;
+
+  res.redirect(authURL);
+});
+
+router.get("/test", (req, res) => {
+  //console.log(req);
+  //fum2yrleTk1WX55gnFbXwn7hQPLU
 });
 module.exports = router;
