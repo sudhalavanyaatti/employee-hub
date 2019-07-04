@@ -4,6 +4,7 @@ const userController = require("../controllers/userController");
 const authy = require("authy")("ha8lM5Mj5JuCI6adHAPWWeEf7itHjWZJ");
 const events = require("events");
 const fetch = require("node-fetch");
+let crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const secret = "MnYusErVoE9eY4f";
 
@@ -31,26 +32,39 @@ router.get("/", (req, res, next) => {
   res.render("index", { title: "Express" });
 });
 
-router.post("/register", (req, res) => {
-  userController.create(req.body, (err, userResponse) => {
-    if (err) throw err;
-    //write twilio code here
-    let phone = userResponse.phone;
-    authy
-      .phones()
-      .verification_start(
-        phone,
-        "+91",
-        { via: "sms", locale: "en", code_length: "6" },
-        (err, otpResponse) => {
-          if (err) throw err;
-          res.json({
-            message: "success",
-            response: otpResponse
-          });
-        }
-      );
-  });
+router.post("/register", async (req, res) => {
+  let mykey = await crypto.createCipher("aes-128-cbc", req.body.password);
+  let mystr = await mykey.update("abc", "utf8", "hex");
+  mystr += await mykey.final("hex");
+  userController.create(
+    {
+      fullName: req.body.fullName,
+      email: req.body.email,
+      password: mystr,
+      category: req.body.category,
+      phone: req.body.phone,
+      address: req.body.address
+    },
+    (err, userResponse) => {
+      if (err) throw err;
+      //write twilio code here
+      let phone = userResponse.phone;
+      authy
+        .phones()
+        .verification_start(
+          phone,
+          "+91",
+          { via: "sms", locale: "en", code_length: "6" },
+          (err, otpResponse) => {
+            if (err) throw err;
+            res.json({
+              message: "success",
+              response: otpResponse
+            });
+          }
+        );
+    }
+  );
 });
 
 router.post("/validate-otp", (req, res) => {
@@ -135,4 +149,7 @@ router.get("/details", (req, res) => {
   });
 });
 
+router.get("/auth2", (req, res) => {
+  console.log(req);
+});
 module.exports = router;
