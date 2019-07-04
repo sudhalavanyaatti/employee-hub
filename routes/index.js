@@ -17,13 +17,13 @@ let EventHandler = function mailtransfer(mail, name) {
   const msg = {
     to: mail,
     from: "sudhalova@gmail.com",
-    template_id: "d-cebc2e244bd6424f8dec3a091f25ac8a",
+    template_id: "d-07430c527dce4e1d94938f446becb530",
     dynamic_template_data: {
       name: name
     }
   };
   sgMail.send(msg).then(function() {
-    console.log("message send successfully!!");
+    console.log("mail send successfully!!");
   });
 };
 eventEmitter.on("mailtransfer", EventHandler);
@@ -36,35 +36,26 @@ router.post("/register", async (req, res) => {
   let mykey = await crypto.createCipher("aes-128-cbc", req.body.password);
   let mystr = await mykey.update("abc", "utf8", "hex");
   mystr += await mykey.final("hex");
-  userController.create(
-    {
-      fullName: req.body.fullName,
-      email: req.body.email,
-      password: mystr,
-      category: req.body.category,
-      phone: req.body.phone,
-      address: req.body.address
-    },
-    (err, userResponse) => {
-      if (err) throw err;
-      //write twilio code here
-      let phone = userResponse.phone;
-      authy
-        .phones()
-        .verification_start(
-          phone,
-          "+91",
-          { via: "sms", locale: "en", code_length: "6" },
-          (err, otpResponse) => {
-            if (err) throw err;
-            res.json({
-              message: "success",
-              response: otpResponse
-            });
-          }
-        );
-    }
-  );
+  req.body.password = mystr;
+  userController.create(req.body, (err, userResponse) => {
+    if (err) throw err;
+    //write twilio code here
+    let phone = userResponse.phone;
+    authy
+      .phones()
+      .verification_start(
+        phone,
+        "+91",
+        { via: "sms", locale: "en", code_length: "6" },
+        (err, otpResponse) => {
+          if (err) throw err;
+          res.json({
+            message: "success",
+            response: otpResponse
+          });
+        }
+      );
+  });
 });
 
 router.post("/validate-otp", (req, res) => {
