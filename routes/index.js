@@ -2,13 +2,12 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
 //const authy = require("authy")("ha8lM5Mj5JuCI6adHAPWWeEf7itHjWZJ");
-const authy = require('authy')('b5seXvkqGCWE6YNJoGyEa9Rye7XazgCt');
-const events = require('events');
-const fetch = require('node-fetch');
-let crypto = require('crypto');
-const jwt = require('jsonwebtoken');
-const secret = 'MnYusErVoE9eY4f';
-
+const authy = require("authy")("u8E1R1Qm2NJeK6p2GawDhGREW4lYqJjX");
+const events = require("events");
+const fetch = require("node-fetch");
+let crypto = require("crypto");
+const jwt = require("jsonwebtoken");
+const secret = "MnYusErVoE9eY4f";
 //mail transfer
 const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(
@@ -29,16 +28,14 @@ let EventHandler = function mailtransfer(mail, name) {
     console.log('mail send successfully!!');
   });
 };
-eventEmitter.on('mailtransfer', EventHandler);
-
-router.get('/', (req, res, next) => {
-  res.render('index', {title: 'Express'});
+eventEmitter.on("mailtransfer", EventHandler);
+router.get("/", (req, res, next) => {
+  res.render("index", { title: "Express" });
 });
-
-router.post('/register', async (req, res) => {
-  let mykey = await crypto.createCipher('aes-128-cbc', req.body.password);
-  let mystr = await mykey.update(req.body.password, 'utf8', 'hex');
-  mystr += await mykey.final('hex');
+router.post("/register", async (req, res) => {
+  let mykey = await crypto.createCipher("aes-128-cbc", req.body.password);
+  let mystr = await mykey.update(req.body.password, "utf8", "hex");
+  mystr += await mykey.final("hex");
   req.body.password = mystr;
   userController.create(req.body, (err, userResponse) => {
     if (err) throw err;
@@ -156,12 +153,11 @@ router.get('/details', (req, res) => {
     });
   });
 });
-
-router.get('/auth2', async (req, res) => {
-  const clientId = '0fb9cdf0-6668-48d8-90cf-215e4d393d59';
-  const clientSecret = 'vSB9bo18YvPj4NSDo4qQjA';
-  const redirectURI = 'http://localhost:3001/test';
-  const baseURL = 'https://api.cc.email/v3/idfed';
+router.get("/auth2", async (req, res) => {
+  const clientId = "0fb9cdf0-6668-48d8-90cf-215e4d393d59";
+  const clientSecret = "vSB9bo18YvPj4NSDo4qQjA";
+  const redirectURI = "http://localhost:3001/test";
+  const baseURL = "https://api.cc.email/v3/idfed";
   const authURL =
     baseURL +
     '?client_id=' +
@@ -169,11 +165,9 @@ router.get('/auth2', async (req, res) => {
     '&scope=contact_data&response_type=token' +
     '&redirect_uri=' +
     redirectURI;
-
   res.redirect(authURL);
 });
-
-router.get('/test', (req, res) => {
+router.get("/test", (req, res) => {
   //console.log(req);
   //fum2yrleTk1WX55gnFbXwn7hQPLU
 });
