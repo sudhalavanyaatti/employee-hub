@@ -21,6 +21,7 @@
     "mongoose": "^5.6.2",
     "morgan": "^1.9.1",
     "node-fetch": "^2.6.0",
+    "nodemon": "^1.19.1",
     "sendgrid": "^5.2.3",
     "twilio": "^3.33.0"
   }

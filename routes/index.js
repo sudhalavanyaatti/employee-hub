@@ -2,13 +2,12 @@ const express = require("express");
 const router = express.Router();
 const userController = require("../controllers/userController");
 //const authy = require("authy")("ha8lM5Mj5JuCI6adHAPWWeEf7itHjWZJ");
-const authy = require("authy")("Xyas82sTxYYbqlP8142TeSwVfGCcaf6V");
+const authy = require("authy")("u8E1R1Qm2NJeK6p2GawDhGREW4lYqJjX");
 const events = require("events");
 const fetch = require("node-fetch");
 let crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const secret = "MnYusErVoE9eY4f";
-
 //mail transfer
 const sgMail = require("@sendgrid/mail");
 sgMail.setApiKey(
@@ -30,11 +29,9 @@ let EventHandler = function mailtransfer(mail, name) {
   });
 };
 eventEmitter.on("mailtransfer", EventHandler);
-
 router.get("/", (req, res, next) => {
   res.render("index", { title: "Express" });
 });
-
 router.post("/register", async (req, res) => {
   let mykey = await crypto.createCipher("aes-128-cbc", req.body.password);
   let mystr = await mykey.update(req.body.password, "utf8", "hex");
@@ -51,7 +48,7 @@ router.post("/register", async (req, res) => {
         "+91",
         { via: "sms", locale: "en", code_length: "6" },
         (err, otpResponse) => {
-          if (err) throw err;
+          if (err) console.log(err);
           res.json({
             message: "success",
             response: otpResponse
@@ -111,6 +108,7 @@ router.post("/validate-otp", (req, res) => {
     });
 });
 router.post("/login", (req, res) => {
+  console.log("email", req.body.email);
   userController.findOne({ email: req.body.email }, (err, user) => {
     console.log("password", user.password);
     if (!user) {
@@ -131,7 +129,6 @@ router.post("/login", (req, res) => {
     });
   });
 });
-
 router.get("/details", (req, res) => {
   let token1 = req.headers["x-access-token"];
 
@@ -150,7 +147,6 @@ router.get("/details", (req, res) => {
     });
   });
 });
-
 router.get("/auth2", async (req, res) => {
   const clientId = "0fb9cdf0-6668-48d8-90cf-215e4d393d59";
   const clientSecret = "vSB9bo18YvPj4NSDo4qQjA";
@@ -163,10 +159,8 @@ router.get("/auth2", async (req, res) => {
     "&scope=contact_data&response_type=token" +
     "&redirect_uri=" +
     redirectURI;
-
   res.redirect(authURL);
 });
-
 router.get("/test", (req, res) => {
   //console.log(req);
   //fum2yrleTk1WX55gnFbXwn7hQPLU
