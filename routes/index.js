@@ -54,21 +54,18 @@ router.post('/register', (req, res) => {
 });
 
 router.post('/validate-otp', (req, res) => {
-  console.log(req.body);
   let otp = req.body.otp;
   let phone = req.body.phone;
   authy
     .phones()
     .verification_check(phone, '+91', otp, (err, statusResponse) => {
-      console.log(err);
       if (err) return err;
-      console.log(statusResponse);
+      // console.log(statusResponse);
       if (statusResponse) {
         let data1 = {phone: req.body.phone};
         let data2 = {$set: {twilioStatus: 'true'}};
         userController.findOneAndUpdate(data1, data2, (err, updateResult) => {
-          if (err) throw err;
-          console.log(updateResult);
+          if (err) console.log(err);
           if (updateResult.twilioStatus) {
             // Mailtransfer event FIRING
             eventEmitter.emit(
@@ -94,7 +91,7 @@ router.post('/validate-otp', (req, res) => {
             })
               .then(res => res.json())
               .then(response => {
-                console.log(response);
+                //console.log(response);
                 res.send(response);
               });
           }

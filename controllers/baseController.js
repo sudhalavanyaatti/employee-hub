@@ -16,7 +16,7 @@ class BaseController {
     this.model.findOneAndUpdate(
       data1,
       data2,
-      { new: true },
+      {new: true},
       (err, dbNewObject) => {
         if (err) {
           return callback(err);
