@@ -16,7 +16,7 @@ class BaseController {
     this.model.findOneAndUpdate(
       data1,
       data2,
-      {new: true},
+      { new: true },
       (err, dbNewObject) => {
         if (err) {
           return callback(err);
@@ -36,6 +36,15 @@ class BaseController {
   }
   findById(params, callback) {
     this.model.findById(params, (err, dbNewObject) => {
+      if (err) {
+        return callback(err);
+      }
+      return callback(null, dbNewObject);
+    });
+  }
+
+  find(params, callback) {
+    this.model.find(params, (err, dbNewObject) => {
       if (err) {
         return callback(err);
       }

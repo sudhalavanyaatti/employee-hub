@@ -1,6 +1,6 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const userController = require('../controllers/userController');
+const userController = require("../controllers/userController");
 //const authy = require("authy")("ha8lM5Mj5JuCI6adHAPWWeEf7itHjWZJ");
 const authy = require("authy")("u8E1R1Qm2NJeK6p2GawDhGREW4lYqJjX");
 const events = require("events");
@@ -9,23 +9,23 @@ let crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const secret = "MnYusErVoE9eY4f";
 //mail transfer
-const sgMail = require('@sendgrid/mail');
+const sgMail = require("@sendgrid/mail");
 sgMail.setApiKey(
-  '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'
+  "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"
 );
 //mailtranfer event declaration
 let eventEmitter = new events.EventEmitter();
 let EventHandler = function mailtransfer(mail, name) {
   const msg = {
     to: mail,
-    from: 'sudhalova@gmail.com',
-    template_id: 'd-07430c527dce4e1d94938f446becb530',
+    from: "sudhalova@gmail.com",
+    template_id: "d-07430c527dce4e1d94938f446becb530",
     dynamic_template_data: {
       name: name
     }
   };
   sgMail.send(msg).then(function() {
-    console.log('mail send successfully!!');
+    console.log("mail send successfully!!");
   });
 };
 eventEmitter.on("mailtransfer", EventHandler);
@@ -45,41 +45,41 @@ router.post("/register", async (req, res) => {
       .phones()
       .verification_start(
         phone,
-        '+91',
-        {via: 'sms', locale: 'en', code_length: '6'},
+        "+91",
+        { via: "sms", locale: "en", code_length: "6" },
         (err, otpResponse) => {
           if (err) console.log(err);
           res.send({
-            message: 'success',
+            message: "success",
             response: otpResponse
           });
-          console.log('otp res ', otpResponse);
+          console.log("otp res ", otpResponse);
         }
       );
   });
 });
-router.post('/validate-otp', (req, res) => {
+router.post("/validate-otp", (req, res) => {
   //console.log("body", req.body);
   let otp = req.body.otp;
   let phone = req.body.phone;
   authy
     .phones()
-    .verification_check(phone, '+91', otp, (err, statusResponse) => {
+    .verification_check(phone, "+91", otp, (err, statusResponse) => {
       if (err) return err;
-      console.log('praveen', statusResponse);
+      console.log("praveen", statusResponse);
       res.send({
         response: statusResponse
       });
       if (statusResponse) {
-        let data1 = {phone: req.body.phone};
-        let data2 = {$set: {twilioStatus: 'true'}};
+        let data1 = { phone: req.body.phone };
+        let data2 = { $set: { twilioStatus: "true" } };
         userController.findOneAndUpdate(data1, data2, (err, updateResult) => {
           if (err) throw err;
           //console.log("update result", updateResult);
           if (updateResult.twilioStatus) {
             // Mailtransfer event FIRING
             eventEmitter.emit(
-              'mailtransfer',
+              "mailtransfer",
               updateResult.email,
               updateResult.fullName
             );
@@ -113,19 +113,19 @@ router.post('/validate-otp', (req, res) => {
       }
     });
 });
-router.post('/login', (req, res) => {
-  userController.findOne({phone: req.body.phone}, (err, user) => {
-    console.log('phone', user.password);
+router.post("/login", (req, res) => {
+  userController.findOne({ phone: req.body.phone }, (err, user) => {
+    console.log("phone", user.password);
     if (!user) {
-      console.log('No user found');
+      console.log("No user found");
     }
-    let mykey = crypto.createDecipher('aes-128-cbc', req.body.password);
-    let mystr = mykey.update(user.password, 'hex', 'utf8');
+    let mykey = crypto.createDecipher("aes-128-cbc", req.body.password);
+    let mystr = mykey.update(user.password, "hex", "utf8");
 
-    mystr += mykey.final('utf8');
+    mystr += mykey.final("utf8");
     console.log(mystr);
 
-    var token = jwt.sign({id: user._id}, secret, {
+    var token = jwt.sign({ id: user._id }, secret, {
       expiresIn: 86400
     });
     res.json({
@@ -135,17 +135,17 @@ router.post('/login', (req, res) => {
   });
 });
 
-router.get('/details', (req, res) => {
-  let token1 = req.headers['x-access-token'];
+router.get("/details", (req, res) => {
+  let token1 = req.headers["x-access-token"];
 
   if (!token1)
-    return res.status(401).send({auth: false, message: 'No token provided.'});
+    return res.status(401).send({ auth: false, message: "No token provided." });
   jwt.verify(token1, secret, (err, data) => {
     if (err) {
-      return res.send({auth: false, message: 'Token not matched'});
+      return res.send({ auth: false, message: "Token not matched" });
     }
     console.log(data);
-    userController.findById(data.id, (err, details) => {
+    userController.find({}, (err, details) => {
       console.log(details);
       res.json({
         details: details
@@ -160,10 +160,10 @@ router.get("/auth2", async (req, res) => {
   const baseURL = "https://api.cc.email/v3/idfed";
   const authURL =
     baseURL +
-    '?client_id=' +
+    "?client_id=" +
     clientId +
-    '&scope=contact_data&response_type=token' +
-    '&redirect_uri=' +
+    "&scope=contact_data&response_type=token" +
+    "&redirect_uri=" +
     redirectURI;
   res.redirect(authURL);
 });
@@ -171,16 +171,16 @@ router.get("/test", (req, res) => {
   //console.log(req);
   //fum2yrleTk1WX55gnFbXwn7hQPLU
 });
-router.post('/forgot-password', (req, res) => {
-  userController.findOne({phone: req.body.phone}, async (err, user) => {
-    console.log('Number', user.phone);
+router.post("/forgot-password", (req, res) => {
+  userController.findOne({ phone: req.body.phone }, async (err, user) => {
+    console.log("Number", user.phone);
     let phone = req.body.phone;
     authy
       .phones()
       .verification_start(
         phone,
-        '+91',
-        {via: 'sms', locale: 'en', code_length: '6'},
+        "+91",
+        { via: "sms", locale: "en", code_length: "6" },
         (err, passwordOtpResponse) => {
           if (err) console.log(err);
           res.send({
@@ -190,27 +190,27 @@ router.post('/forgot-password', (req, res) => {
       );
   });
 });
-router.post('/password-OtpVal', (req, res) => {
+router.post("/password-OtpVal", (req, res) => {
   let otp = req.body.otp;
   let phone = req.body.phone;
   authy
     .phones()
-    .verification_check(phone, '+91', otp, (err, passOtpResponse) => {
+    .verification_check(phone, "+91", otp, (err, passOtpResponse) => {
       if (err) return err;
       res.send({
         response: passOtpResponse
       });
     });
 });
-router.post('/update-password', async(req, res) => {
-  let pass=req.body.confirmPassword;
-  let mykey = await crypto.createCipher('aes-128-cbc', pass);
-  let mystr = await mykey.update(pass, 'utf8', 'hex');
-  mystr += await mykey.final('hex');
-  
-  let phone1=req.body.phone;
-  let data1 = {phone: phone1};
-  let data2 = {$set: {password: mystr}};
+router.post("/update-password", async (req, res) => {
+  let pass = req.body.confirmPassword;
+  let mykey = await crypto.createCipher("aes-128-cbc", pass);
+  let mystr = await mykey.update(pass, "utf8", "hex");
+  mystr += await mykey.final("hex");
+
+  let phone1 = req.body.phone;
+  let data1 = { phone: phone1 };
+  let data2 = { $set: { password: mystr } };
   userController.findOneAndUpdate(data1, data2, (err, passwordUpdateResult) => {
     if (err) throw err;
     res.send({
