@@ -2,12 +2,12 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
 //const authy = require("authy")("ha8lM5Mj5JuCI6adHAPWWeEf7itHjWZJ");
-const authy = require("authy")("u8E1R1Qm2NJeK6p2GawDhGREW4lYqJjX");
-const events = require("events");
-const fetch = require("node-fetch");
-let crypto = require("crypto");
-const jwt = require("jsonwebtoken");
-const secret = "MnYusErVoE9eY4f";
+const authy = require('authy')('TT1FIbNDt6DnbSvZeKNG1nMcpeiTEBWn');
+const events = require('events');
+const fetch = require('node-fetch');
+let crypto = require('crypto');
+const jwt = require('jsonwebtoken');
+const secret = 'MnYusErVoE9eY4f';
 //mail transfer
 const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(
@@ -28,14 +28,14 @@ let EventHandler = function mailtransfer(mail, name) {
     console.log('mail send successfully!!');
   });
 };
-eventEmitter.on("mailtransfer", EventHandler);
-router.get("/", (req, res, next) => {
-  res.render("index", { title: "Express" });
+eventEmitter.on('mailtransfer', EventHandler);
+router.get('/', (req, res, next) => {
+  res.render('index', {title: 'Express'});
 });
-router.post("/register", async (req, res) => {
-  let mykey = await crypto.createCipher("aes-128-cbc", req.body.password);
-  let mystr = await mykey.update(req.body.password, "utf8", "hex");
-  mystr += await mykey.final("hex");
+router.post('/register', async (req, res) => {
+  let mykey = await crypto.createCipher('aes-128-cbc', req.body.password);
+  let mystr = await mykey.update(req.body.password, 'utf8', 'hex');
+  mystr += await mykey.final('hex');
   req.body.password = mystr;
   userController.create(req.body, (err, userResponse) => {
     if (err) throw err;
@@ -65,7 +65,9 @@ router.post('/validate-otp', (req, res) => {
   authy
     .phones()
     .verification_check(phone, '+91', otp, (err, statusResponse) => {
-      if (err) return err;
+      if (err) {
+        return res.send({response: err});
+      }
       console.log('praveen', statusResponse);
       res.send({
         response: statusResponse
@@ -115,10 +117,10 @@ router.post('/validate-otp', (req, res) => {
 });
 router.post('/login', (req, res) => {
   userController.findOne({phone: req.body.phone}, (err, user) => {
-    console.log('phone', user.password);
     if (!user) {
       console.log('No user found');
     }
+    // if(user.twilioStatus==='true'){
     let mykey = crypto.createDecipher('aes-128-cbc', req.body.password);
     let mystr = mykey.update(user.password, 'hex', 'utf8');
 
@@ -132,6 +134,12 @@ router.post('/login', (req, res) => {
       token: token,
       data: user
     });
+    // else{
+    //   res.json({
+    //     data:'false'
+
+    //   });
+    //}
   });
 });
 
@@ -153,11 +161,11 @@ router.get('/details', (req, res) => {
     });
   });
 });
-router.get("/auth2", async (req, res) => {
-  const clientId = "0fb9cdf0-6668-48d8-90cf-215e4d393d59";
-  const clientSecret = "vSB9bo18YvPj4NSDo4qQjA";
-  const redirectURI = "http://localhost:3001/test";
-  const baseURL = "https://api.cc.email/v3/idfed";
+router.get('/auth2', async (req, res) => {
+  const clientId = '0fb9cdf0-6668-48d8-90cf-215e4d393d59';
+  const clientSecret = 'vSB9bo18YvPj4NSDo4qQjA';
+  const redirectURI = 'http://localhost:3001/test';
+  const baseURL = 'https://api.cc.email/v3/idfed';
   const authURL =
     baseURL +
     '?client_id=' +
@@ -167,13 +175,12 @@ router.get("/auth2", async (req, res) => {
     redirectURI;
   res.redirect(authURL);
 });
-router.get("/test", (req, res) => {
+router.get('/test', (req, res) => {
   //console.log(req);
   //fum2yrleTk1WX55gnFbXwn7hQPLU
 });
 router.post('/forgot-password', (req, res) => {
   userController.findOne({phone: req.body.phone}, async (err, user) => {
-    console.log('Number', user.phone);
     let phone = req.body.phone;
     authy
       .phones()
@@ -196,19 +203,22 @@ router.post('/password-OtpVal', (req, res) => {
   authy
     .phones()
     .verification_check(phone, '+91', otp, (err, passOtpResponse) => {
-      if (err) return err;
-      res.send({
+      if (err) {
+        return res.send({response: err});
+      }
+      res.json({
         response: passOtpResponse
       });
+      console.log('new ', passOtpResponse);
     });
 });
-router.post('/update-password', async(req, res) => {
-  let pass=req.body.confirmPassword;
+router.post('/update-password', async (req, res) => {
+  let pass = req.body.confirmPassword;
   let mykey = await crypto.createCipher('aes-128-cbc', pass);
   let mystr = await mykey.update(pass, 'utf8', 'hex');
   mystr += await mykey.final('hex');
-  
-  let phone1=req.body.phone;
+
+  let phone1 = req.body.phone;
   let data1 = {phone: phone1};
   let data2 = {$set: {password: mystr}};
   userController.findOneAndUpdate(data1, data2, (err, passwordUpdateResult) => {
