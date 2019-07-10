@@ -33,7 +33,7 @@ router.get('/', (req, res, next) => {
   res.render('index', {title: 'Express'});
 });
 router.post('/register', async (req, res) => {
-  let mykey = await crypto.createCipher('aes-128-cbc', req.body.password);
+  let mykey = await crypto.createCipher('aes-128-cbc', 'd6F3Efeq');
   let mystr = await mykey.update(req.body.password, 'utf8', 'hex');
   mystr += await mykey.final('hex');
   req.body.password = mystr;
@@ -117,29 +117,32 @@ router.post('/validate-otp', (req, res) => {
 });
 router.post('/login', (req, res) => {
   userController.findOne({phone: req.body.phone}, (err, user) => {
+    if (err)
+    console.log(err);
     if (!user) {
       console.log('No user found');
+      res.json({
+        data: user
+      });
+    } else {
+      let mykey = crypto.createCipher('aes-128-cbc', 'd6F3Efeq');
+      let mystr = mykey.update(req.body.password, 'utf8', 'hex');
+      mystr += mykey.final('hex');
+      if(mystr === user.password){
+      var token = jwt.sign({id: user._id}, secret, {
+        expiresIn: 86400
+      });
+      res.json({
+        token: token,
+        data: user
+      });
     }
-    // if(user.twilioStatus==='true'){
-    let mykey = crypto.createDecipher('aes-128-cbc', req.body.password);
-    let mystr = mykey.update(user.password, 'hex', 'utf8');
-
-    mystr += mykey.final('utf8');
-    console.log(mystr);
-
-    var token = jwt.sign({id: user._id}, secret, {
-      expiresIn: 86400
-    });
-    res.json({
-      token: token,
-      data: user
-    });
-    // else{
-    //   res.json({
-    //     data:'false'
-
-    //   });
-    //}
+    else{
+      res.json({
+        data:'incorrect'
+      });
+    }
+    }
   });
 });
 
@@ -214,7 +217,7 @@ router.post('/password-OtpVal', (req, res) => {
 });
 router.post('/update-password', async (req, res) => {
   let pass = req.body.confirmPassword;
-  let mykey = await crypto.createCipher('aes-128-cbc', pass);
+  let mykey = await crypto.createCipher('aes-128-cbc', 'd6F3Efeq');
   let mystr = await mykey.update(pass, 'utf8', 'hex');
   mystr += await mykey.final('hex');
 
