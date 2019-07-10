@@ -8,8 +8,13 @@ const User = new SChema({
   phone: {type: String, unique: true, required: true},
   address: {type: String},
   twilioStatus: {type: Boolean, default: false},
-  latitude:{type:Number},
-  longitude:{type:Number}
+  latitude: {type: Number},
+  longitude: {type: Number},
+  date_of_birth: {type: String},
+  blood_Group: {type: String},
+  language: {type: String},
+  company_name: {type: String},
+  experience: {type: Number}
 });
 const Users = mongoose.model('user', User);
 module.exports = Users;

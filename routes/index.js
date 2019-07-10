@@ -231,4 +231,30 @@ router.post('/update-password', async (req, res) => {
     });
   });
 });
+router.post('/profile', (req, res) => {
+  let token=req.body.token;
+  var decoded = jwt.verify(token,secret);
+  userController.findOne({_id: decoded.id}, (err, user) => {
+    if (err)
+    console.log(err);
+   // console.log(user);
+  res.send({
+    data: user
+  });
+});
+});
+router.post('/update-details', (req, res) => {
+  let data = req.body.id;
+  let data1 =req.body;
+  userController.findByIdAndUpdate(data, data1, (err, updatedUser) => {
+    if (err)
+    console.log(err);
+    res.send({
+      data: updatedUser
+    });
+  });
+
+
+});
+
 module.exports = router;
