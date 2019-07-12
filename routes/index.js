@@ -38,7 +38,9 @@ router.post('/register', async (req, res) => {
   mystr += await mykey.final('hex');
   req.body.password = mystr;
   userController.create(req.body, (err, userResponse) => {
-    if (err) throw err;
+    if (err)  {
+      return res.send({response: err});
+    }
     //write twilio code here
     let phone = userResponse.phone;
     authy
