@@ -1,4 +1,4 @@
-let mongoose = require('mongoose');
+let mongoose = require("mongoose");
 let SChema = mongoose.Schema;
 const User = new SChema({
   fullName: {type: String, required: true},
@@ -6,7 +6,6 @@ const User = new SChema({
   password: {type: String, required: true},
   category: {type: String, required: true},
   phone: {type: String, unique: true, required: true},
-  address: {type: String},
   twilioStatus: {type: Boolean, default: false},
   latitude: {type: Number},
   longitude: {type: Number},
@@ -16,7 +15,10 @@ const User = new SChema({
   company_name: {type: String},
   experience: {type: Number},
   join_date: {type: Date, default: Date.now},
-  gender: {type: String}
+  gender: {type: String},
+  city: { type: String },
+  state: { type: String },
+  zip: { type: Number },
 });
-const Users = mongoose.model('user', User);
+const Users = mongoose.model("user", User);
 module.exports = Users;
