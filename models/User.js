@@ -14,11 +14,12 @@ const User = new SChema({
   language: {type: String},
   company_name: {type: String},
   experience: {type: Number},
-  join_date: {type: Date, default: Date.now},
+  join_date: {type: Date, default: Date.now,contentType: String},
   gender: {type: String},
   city: { type: String },
   state: { type: String },
   zip: { type: Number },
+  profilePic: {type: String,default:'Photo'}
 });
 const Users = mongoose.model("user", User);
 module.exports = Users;

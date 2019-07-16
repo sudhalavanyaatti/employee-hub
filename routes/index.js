@@ -1,8 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
-//const authy = require("authy")("ha8lM5Mj5JuCI6adHAPWWeEf7itHjWZJ");
-const authy = require('authy')('TT1FIbNDt6DnbSvZeKNG1nMcpeiTEBWn');
+const authy = require("authy")("onS7TJBOgOzEBMWagLWwuVqHuxx4vMAr");
+//const authy = require('authy')('TT1FIbNDt6DnbSvZeKNG1nMcpeiTEBWn');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const events = require('events');
 const fetch = require('node-fetch');
 let crypto = require('crypto');
@@ -13,6 +16,16 @@ const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(
   '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'
 );
+var storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+  cb(null, 'public/images')
+},
+filename: function (req, file, cb) {
+  cb(null, Date.now() + '-' +file.originalname )
+}
+})
+var upload = multer({ storage: storage }).single('profilePic')
+
 //mailtranfer event declaration
 let eventEmitter = new events.EventEmitter();
 let EventHandler = function mailtransfer(mail, name) {
@@ -32,13 +45,13 @@ eventEmitter.on('mailtransfer', EventHandler);
 router.get('/', (req, res, next) => {
   res.render('index', {title: 'Express'});
 });
-router.post('/register', async (req, res) => {
+router.post('/register',  async (req, res) => {
   let mykey = await crypto.createCipher('aes-128-cbc', 'd6F3Efeq');
   let mystr = await mykey.update(req.body.password, 'utf8', 'hex');
   mystr += await mykey.final('hex');
   req.body.password = mystr;
   userController.create(req.body, (err, userResponse) => {
-    if (err)  {
+    if (err) {
       return res.send({response: err});
     }
     //write twilio code here
@@ -50,9 +63,10 @@ router.post('/register', async (req, res) => {
         '+91',
         {via: 'sms', locale: 'en', code_length: '6'},
         (err, otpResponse) => {
-          if (err) console.log(err);
+          if (err) {
+            return res.send({response: err});
+          }
           res.send({
-            message: 'success',
             response: otpResponse
           });
           console.log('otp res ', otpResponse);
@@ -119,8 +133,7 @@ router.post('/validate-otp', (req, res) => {
 });
 router.post('/login', (req, res) => {
   userController.findOne({phone: req.body.phone}, (err, user) => {
-    if (err)
-    console.log(err);
+    if (err) console.log(err);
     if (!user) {
       console.log('No user found');
       res.json({
@@ -130,20 +143,25 @@ router.post('/login', (req, res) => {
       let mykey = crypto.createCipher('aes-128-cbc', 'd6F3Efeq');
       let mystr = mykey.update(req.body.password, 'utf8', 'hex');
       mystr += mykey.final('hex');
-      if(mystr === user.password){
-      var token = jwt.sign({id: user._id}, secret, {
-        expiresIn: 86400
-      });
-      res.json({
-        token: token,
-        data: user
-      });
-    }
-    else{
-      res.json({
-        data:'incorrect'
-      });
-    }
+      if (mystr === user.password) {
+        if (user.twilioStatus) {
+          var token = jwt.sign({id: user._id}, secret, {
+            expiresIn: 86400
+          });
+          res.json({
+            token: token,
+            data: user
+          });
+        } else {
+          res.json({
+            data: 'statusFalse'
+          });
+        }
+      } else {
+        res.json({
+          data: 'incorrect'
+        });
+      }
     }
   });
 });
@@ -186,20 +204,26 @@ router.get('/test', (req, res) => {
 });
 router.post('/forgot-password', (req, res) => {
   userController.findOne({phone: req.body.phone}, async (err, user) => {
-    let phone = req.body.phone;
-    authy
-      .phones()
-      .verification_start(
-        phone,
-        '+91',
-        {via: 'sms', locale: 'en', code_length: '6'},
-        (err, passwordOtpResponse) => {
-          if (err) console.log(err);
-          res.send({
-            response: passwordOtpResponse
-          });
-        }
-      );
+    if (user) {
+      let phone = req.body.phone;
+      authy
+        .phones()
+        .verification_start(
+          phone,
+          '+91',
+          {via: 'sms', locale: 'en', code_length: '6'},
+          (err, passwordOtpResponse) => {
+            if (err) console.log(err);
+            res.send({
+              response: passwordOtpResponse
+            });
+          }
+        );
+    } else {
+      res.send({
+        response: 'null'
+      });
+    }
   });
 });
 router.post('/password-OtpVal', (req, res) => {
@@ -234,29 +258,42 @@ router.post('/update-password', async (req, res) => {
   });
 });
 router.post('/profile', (req, res) => {
-  let token=req.body.token;
-  var decoded = jwt.verify(token,secret);
+  let token = req.body.token;
+  var decoded = jwt.verify(token, secret);
   userController.findOne({_id: decoded.id}, (err, user) => {
-    if (err)
-    console.log(err);
-   // console.log(user);
-  res.send({
-    data: user
+    if (err) console.log(err);
+    // console.log(user);
+    res.send({
+      data: user
+    });
   });
-});
 });
 router.post('/update-details', (req, res) => {
   let data = req.body.id;
-  let data1 =req.body;
+  let data1 = req.body;
+  //console.log(req.body);
   userController.findByIdAndUpdate(data, data1, (err, updatedUser) => {
-    if (err)
-    console.log(err);
+    if (err) console.log(err);
     res.send({
       data: updatedUser
     });
   });
+});
+router.post('/update-photo',(req, res)=> {  
+  upload(req, res,(err)=> {
+    //console.log('avc',req.file.filename)
+    //console.log('avc',req.body.id)
 
-
+    let data1 = {_id: req.body.id};
+    let data2 = {$set: {profilePic:'http://localhost:3001/images/'+ req.file.filename}};
+    userController.findOneAndUpdate(data1, data2, (err, updatedPhoto) => {
+      if (err) console.log(err);
+      //console.log(updatedPhoto)
+      res.send({
+        data: updatedPhoto
+      })
+    })
+  })
 });
 
 module.exports = router;
