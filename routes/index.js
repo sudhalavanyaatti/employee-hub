@@ -136,23 +136,23 @@ router.post("/login", (req, res) => {
 });
 
 router.get("/details", (req, res) => {
-  let token1 = req.headers["x-access-token"];
+  // let token1 = req.headers["x-access-token"];
 
-  if (!token1)
-    return res.status(401).send({ auth: false, message: "No token provided." });
-  jwt.verify(token1, secret, (err, data) => {
-    if (err) {
-      return res.send({ auth: false, message: "Token not matched" });
-    }
-    console.log(data);
-    userController.find({}, (err, details) => {
-      console.log(details);
-      res.json({
-        details: details
-      });
+  // if (!token1)
+  //   return res.status(401).send({ auth: false, message: "No token provided." });
+  // jwt.verify(token1, secret, (err, data) => {
+  //   if (err) {
+  //     return res.send({ auth: false, message: "Token not matched" });
+  //   }
+  //   console.log(data);
+  userController.find({}, (err, details) => {
+    console.log(details);
+    res.json({
+      details: details
     });
   });
 });
+
 router.get("/auth2", async (req, res) => {
   const clientId = "0fb9cdf0-6668-48d8-90cf-215e4d393d59";
   const clientSecret = "vSB9bo18YvPj4NSDo4qQjA";
