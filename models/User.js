@@ -14,7 +14,7 @@ const User = new SChema({
   language: {type: String},
   company_name: {type: String},
   experience: {type: Number},
-  join_date: {type: Date, default: Date.now,contentType: String},
+  join_date: {type: Date, default: Date.now},
   gender: {type: String},
   city: { type: String },
   state: { type: String },

@@ -226,6 +226,55 @@ router.post('/forgot-password', (req, res) => {
     }
   });
 });
+router.post('/update-number', (req, res) => {
+  userController.findOne({phone: req.body.phone},(err, user) => {
+    if (!user) {
+      let phone = req.body.phone;
+      authy
+        .phones()
+        .verification_start(
+          phone,
+          '+91',
+          {via: 'sms', locale: 'en', code_length: '6'},
+          (err, updatedNumberResponse) => {
+            if (err) {
+              return res.send({response: err});
+            }
+            console.log(updatedNumberResponse)
+            res.send({
+              response: updatedNumberResponse
+            });
+          }
+        );
+    }else {
+      res.send({
+        response: 'null'
+      });
+    }
+    });
+  });
+  router.post('/updateNumber-OtpVal', (req, res) => {
+    console.log(req.body);
+    let otp = req.body.otp;
+    authy
+      .phones()
+      .verification_check(phone, '+91', otp, (err, numberOtpResponse) => {
+        if (err) {
+          return res.send({response: err});
+        }
+        if(numberOtpResponse){
+          let data = {_id: req.body.id};
+        let data1 = {$set: {phone: req.body.phone}};
+        userController.findOneAndUpdate(data, data1, (err, numUpdateResult) => {
+          if(err) return console.log(err);
+          console.log(numUpdateResult);
+        });
+        }
+        res.json({
+          response: numberOtpResponse
+        });
+      });
+  });
 router.post('/password-OtpVal', (req, res) => {
   let otp = req.body.otp;
   let phone = req.body.phone;
@@ -295,5 +344,24 @@ router.post('/update-photo',(req, res)=> {
     })
   })
 });
-
+router.post('/resend-otp', (req, res) => {
+      let phone = req.body.phone;
+      authy
+        .phones()
+        .verification_start(
+          phone,
+          '+91',
+          {via: 'sms', locale: 'en', code_length: '6'},
+          (err, passwordOtpResponse) => {
+            if (err) {
+              return res.send({
+                response: err
+              });
+            }
+            res.send({
+              response: passwordOtpResponse
+            });
+          }
+        );
+});
 module.exports = router;
