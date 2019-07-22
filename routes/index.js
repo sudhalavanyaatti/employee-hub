@@ -16,7 +16,7 @@ const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(
   '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'
 );
-var storage = multer.diskStorage({
+const storage = multer.diskStorage({
   destination: function (req, file, cb) {
   cb(null, 'public/images')
 },
@@ -24,7 +24,7 @@ filename: function (req, file, cb) {
   cb(null, Date.now() + '-' +file.originalname )
 }
 })
-var upload = multer({ storage: storage }).single('profilePic')
+const upload = multer({ storage: storage }).single('profilePic')
 
 //mailtranfer event declaration
 let eventEmitter = new events.EventEmitter();
@@ -145,7 +145,7 @@ router.post('/login', (req, res) => {
       mystr += mykey.final('hex');
       if (mystr === user.password) {
         if (user.twilioStatus) {
-          var token = jwt.sign({id: user._id}, secret, {
+          let token = jwt.sign({id: user._id}, secret, {
             expiresIn: 86400
           });
           res.json({
@@ -256,22 +256,24 @@ router.post('/update-number', (req, res) => {
   router.post('/updateNumber-OtpVal', (req, res) => {
     console.log(req.body);
     let otp = req.body.otp;
+    let phone=req.body.phone;
     authy
-      .phones()
-      .verification_check(phone, '+91', otp, (err, numberOtpResponse) => {
-        if (err) {
-          return res.send({response: err});
-        }
-        if(numberOtpResponse){
+    .phones()
+    .verification_check(phone, '+91', otp, (err, numOtpResult) => {
+      if (err) {
+        return res.send({response: err});
+      }
+      console.log('adfa',req.body);
+        if(numOtpResult){
           let data = {_id: req.body.id};
         let data1 = {$set: {phone: req.body.phone}};
         userController.findOneAndUpdate(data, data1, (err, numUpdateResult) => {
           if(err) return console.log(err);
           console.log(numUpdateResult);
         });
-        }
+      }
         res.json({
-          response: numberOtpResponse
+          response: numOtpResult
         });
       });
   });
@@ -308,7 +310,7 @@ router.post('/update-password', async (req, res) => {
 });
 router.post('/profile', (req, res) => {
   let token = req.body.token;
-  var decoded = jwt.verify(token, secret);
+  let decoded = jwt.verify(token, secret);
   userController.findOne({_id: decoded.id}, (err, user) => {
     if (err) console.log(err);
     // console.log(user);
