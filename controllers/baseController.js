@@ -25,6 +25,19 @@ class BaseController {
       }
     );
   }
+  findByIdAndUpdate(data, data1, callback) {
+    this.model.findByIdAndUpdate(
+      data,
+      data1,
+      {new: true},
+      (err, dbNewObject) => {
+        if (err) {
+          return callback(err);
+        }
+        return callback(null, dbNewObject);
+      }
+    );
+  }
   findOne(params, callback) {
     this.model.findOne(params, (err, dbNewObject) => {
       if (err) {
