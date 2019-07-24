@@ -1,13 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
-const authy = require("authy")("onS7TJBOgOzEBMWagLWwuVqHuxx4vMAr");
+const authy = require('authy')('onS7TJBOgOzEBMWagLWwuVqHuxx4vMAr');
 //const authy = require('authy')('TT1FIbNDt6DnbSvZeKNG1nMcpeiTEBWn');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const events = require('events');
-const fetch = require('node-fetch');
 let crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const secret = 'MnYusErVoE9eY4f';
@@ -17,14 +16,14 @@ sgMail.setApiKey(
   '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'
 );
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-  cb(null, 'public/images')
-},
-filename: function (req, file, cb) {
-  cb(null, Date.now() + '-' +file.originalname )
-}
-})
-const upload = multer({ storage: storage }).single('profilePic')
+  destination: function(req, file, cb) {
+    cb(null, 'public/images');
+  },
+  filename: function(req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname);
+  }
+});
+const upload = multer({storage: storage}).single('profilePic');
 
 //mailtranfer event declaration
 let eventEmitter = new events.EventEmitter();
@@ -42,10 +41,12 @@ let EventHandler = function mailtransfer(mail, name) {
   });
 };
 eventEmitter.on('mailtransfer', EventHandler);
+
 router.get('/', (req, res, next) => {
   res.render('index', {title: 'Express'});
 });
-router.post('/register',  async (req, res) => {
+
+router.post('/register', async (req, res) => {
   let mykey = await crypto.createCipher('aes-128-cbc', 'd6F3Efeq');
   let mystr = await mykey.update(req.body.password, 'utf8', 'hex');
   mystr += await mykey.final('hex');
@@ -184,6 +185,7 @@ router.get('/details', (req, res) => {
     });
   });
 });
+
 router.get('/auth2', async (req, res) => {
   const clientId = '0fb9cdf0-6668-48d8-90cf-215e4d393d59';
   const clientSecret = 'vSB9bo18YvPj4NSDo4qQjA';
@@ -198,6 +200,7 @@ router.get('/auth2', async (req, res) => {
     redirectURI;
   res.redirect(authURL);
 });
+
 router.get('/test', (req, res) => {
   //console.log(req);
   //fum2yrleTk1WX55gnFbXwn7hQPLU
@@ -226,8 +229,9 @@ router.post('/forgot-password', (req, res) => {
     }
   });
 });
+
 router.post('/update-number', (req, res) => {
-  userController.findOne({phone: req.body.phone},(err, user) => {
+  userController.findOne({phone: req.body.phone}, (err, user) => {
     if (!user) {
       let phone = req.body.phone;
       authy
@@ -240,43 +244,42 @@ router.post('/update-number', (req, res) => {
             if (err) {
               return res.send({response: err});
             }
-            console.log(updatedNumberResponse)
+            console.log(updatedNumberResponse);
             res.send({
               response: updatedNumberResponse
             });
           }
         );
-    }else {
+    } else {
       res.send({
         response: 'null'
       });
     }
+  });
+});
+
+router.post('/updateNumber-OtpVal', (req, res) => {
+  console.log(req.body);
+  let otp = req.body.otp;
+  let phone = req.body.phone;
+  authy.phones().verification_check(phone, '+91', otp, (err, numOtpResult) => {
+    if (err) {
+      return res.send({response: err});
+    }
+    console.log('adfa', req.body);
+    if (numOtpResult) {
+      let data = {_id: req.body.id};
+      let data1 = {$set: {phone: req.body.phone}};
+      userController.findOneAndUpdate(data, data1, (err, numUpdateResult) => {
+        if (err) return console.log(err);
+        console.log(numUpdateResult);
+      });
+    }
+    res.json({
+      response: numOtpResult
     });
   });
-  router.post('/updateNumber-OtpVal', (req, res) => {
-    console.log(req.body);
-    let otp = req.body.otp;
-    let phone=req.body.phone;
-    authy
-    .phones()
-    .verification_check(phone, '+91', otp, (err, numOtpResult) => {
-      if (err) {
-        return res.send({response: err});
-      }
-      console.log('adfa',req.body);
-        if(numOtpResult){
-          let data = {_id: req.body.id};
-        let data1 = {$set: {phone: req.body.phone}};
-        userController.findOneAndUpdate(data, data1, (err, numUpdateResult) => {
-          if(err) return console.log(err);
-          console.log(numUpdateResult);
-        });
-      }
-        res.json({
-          response: numOtpResult
-        });
-      });
-  });
+});
 router.post('/password-OtpVal', (req, res) => {
   let otp = req.body.otp;
   let phone = req.body.phone;
@@ -330,40 +333,51 @@ router.post('/update-details', (req, res) => {
     });
   });
 });
-router.post('/update-photo',(req, res)=> {  
-  upload(req, res,(err)=> {
+router.post('/update-photo', (req, res) => {
+  upload(req, res, err => {
     //console.log('avc',req.file.filename)
     //console.log('avc',req.body.id)
 
     let data1 = {_id: req.body.id};
-    let data2 = {$set: {profilePic:'http://localhost:3001/images/'+ req.file.filename}};
+    let data2 = {
+      $set: {profilePic: 'http://localhost:3001/images/' + req.file.filename}
+    };
     userController.findOneAndUpdate(data1, data2, (err, updatedPhoto) => {
       if (err) console.log(err);
       //console.log(updatedPhoto)
       res.send({
         data: updatedPhoto
-      })
-    })
-  })
+      });
+    });
+  });
 });
 router.post('/resend-otp', (req, res) => {
-      let phone = req.body.phone;
-      authy
-        .phones()
-        .verification_start(
-          phone,
-          '+91',
-          {via: 'sms', locale: 'en', code_length: '6'},
-          (err, passwordOtpResponse) => {
-            if (err) {
-              return res.send({
-                response: err
-              });
-            }
-            res.send({
-              response: passwordOtpResponse
-            });
-          }
-        );
+  let phone = req.body.phone;
+  authy
+    .phones()
+    .verification_start(
+      phone,
+      '+91',
+      {via: 'sms', locale: 'en', code_length: '6'},
+      (err, passwordOtpResponse) => {
+        if (err) {
+          return res.send({
+            response: err
+          });
+        }
+        res.send({
+          response: passwordOtpResponse
+        });
+      }
+    );
+});
+router.post('/dec-password',(req, res) => {
+  console.log(req.body.password)
+  let mykey = crypto.createCipher('aes-128-cbc', 'd6F3Efeq');
+      let mystr = mykey.update(req.body.password, 'utf8', 'hex');
+      mystr += mykey.final('hex');
+    res.send({
+      data: mystr
+    });
 });
 module.exports = router;

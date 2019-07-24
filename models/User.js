@@ -6,20 +6,15 @@ const User = new SChema({
   password: {type: String, required: true},
   category: {type: String, required: true},
   phone: {type: String, unique: true, required: true},
-  twilioStatus: {type: Boolean, default: false},
+  twilioStatus: {type: Boolean, default: true},
   latitude: {type: Number},
   longitude: {type: Number},
-  date_of_birth: {type: String},
-  blood_Group: {type: String,default: 'none'},
-  language: {type: String,default: 'none'},
-  company_name: {type: String,default: 'none'},
   experience: {type: Number},
   join_date: {type: Date, default: Date.now},
-  gender: {type: String},
   city: { type: String },
   state: { type: String },
   zip: { type: Number },
-  profilePic: {type: String,default:'Photo'}
+  profilePic: {type: String,default:'http://localhost:3001/images/default.jpg'}
 });
 const Users = mongoose.model("user", User);
 module.exports = Users;
