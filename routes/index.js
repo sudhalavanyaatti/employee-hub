@@ -4,8 +4,6 @@ const userController = require('../controllers/userController');
 const authy = require('authy')('onS7TJBOgOzEBMWagLWwuVqHuxx4vMAr');
 //const authy = require('authy')('TT1FIbNDt6DnbSvZeKNG1nMcpeiTEBWn');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const events = require('events');
 let crypto = require('crypto');
 const jwt = require('jsonwebtoken');
@@ -37,14 +35,10 @@ let EventHandler = function mailtransfer(mail, name) {
     }
   };
   sgMail.send(msg).then(function() {
-    console.log('mail send successfully!!');
+  
   });
 };
 eventEmitter.on('mailtransfer', EventHandler);
-
-router.get('/', (req, res, next) => {
-  res.render('index', {title: 'Express'});
-});
 
 router.post('/register', async (req, res) => {
   let mykey = await crypto.createCipher('aes-128-cbc', 'd6F3Efeq');
@@ -70,7 +64,7 @@ router.post('/register', async (req, res) => {
           res.send({
             response: otpResponse
           });
-          console.log('otp res ', otpResponse);
+          
         }
       );
   });
@@ -85,7 +79,6 @@ router.post('/validate-otp', (req, res) => {
       if (err) {
         return res.send({response: err});
       }
-      console.log('praveen', statusResponse);
       res.send({
         response: statusResponse
       });
@@ -176,9 +169,7 @@ router.get('/details', (req, res) => {
     if (err) {
       return res.send({auth: false, message: 'Token not matched'});
     }
-    console.log(data);
     userController.findById(data.id, (err, details) => {
-      console.log(details);
       res.json({
         details: details
       });
@@ -216,7 +207,9 @@ router.post('/forgot-password', (req, res) => {
           '+91',
           {via: 'sms', locale: 'en', code_length: '6'},
           (err, passwordOtpResponse) => {
-            if (err) console.log(err);
+            if (err){
+              return res.send({response: err});
+            }
             res.send({
               response: passwordOtpResponse
             });
@@ -244,7 +237,6 @@ router.post('/update-number', (req, res) => {
             if (err) {
               return res.send({response: err});
             }
-            console.log(updatedNumberResponse);
             res.send({
               response: updatedNumberResponse
             });
@@ -259,20 +251,20 @@ router.post('/update-number', (req, res) => {
 });
 
 router.post('/updateNumber-OtpVal', (req, res) => {
-  console.log(req.body);
+  
   let otp = req.body.otp;
   let phone = req.body.phone;
   authy.phones().verification_check(phone, '+91', otp, (err, numOtpResult) => {
     if (err) {
       return res.send({response: err});
     }
-    console.log('adfa', req.body);
     if (numOtpResult) {
       let data = {_id: req.body.id};
       let data1 = {$set: {phone: req.body.phone}};
       userController.findOneAndUpdate(data, data1, (err, numUpdateResult) => {
-        if (err) return console.log(err);
-        console.log(numUpdateResult);
+        if (err) {
+          return res.send({response: err});
+        }
       });
     }
     res.json({
@@ -292,7 +284,7 @@ router.post('/password-OtpVal', (req, res) => {
       res.json({
         response: passOtpResponse
       });
-      console.log('new ', passOtpResponse);
+      
     });
 });
 router.post('/update-password', async (req, res) => {
@@ -305,7 +297,9 @@ router.post('/update-password', async (req, res) => {
   let data1 = {phone: phone1};
   let data2 = {$set: {password: mystr}};
   userController.findOneAndUpdate(data1, data2, (err, passwordUpdateResult) => {
-    if (err) throw err;
+    if (err) {
+      return res.send({response: err});
+    }
     res.send({
       response: passwordUpdateResult
     });
@@ -315,8 +309,9 @@ router.post('/profile', (req, res) => {
   let token = req.body.token;
   let decoded = jwt.verify(token, secret);
   userController.findOne({_id: decoded.id}, (err, user) => {
-    if (err) console.log(err);
-    // console.log(user);
+    if (err) {
+      return res.send({data: err});
+    }
     res.send({
       data: user
     });
@@ -325,9 +320,11 @@ router.post('/profile', (req, res) => {
 router.post('/update-details', (req, res) => {
   let data = req.body.id;
   let data1 = req.body;
-  //console.log(req.body);
+  
   userController.findByIdAndUpdate(data, data1, (err, updatedUser) => {
-    if (err) console.log(err);
+    if (err){
+      return res.send({data: err});
+    }
     res.send({
       data: updatedUser
     });
@@ -335,16 +332,14 @@ router.post('/update-details', (req, res) => {
 });
 router.post('/update-photo', (req, res) => {
   upload(req, res, err => {
-    //console.log('avc',req.file.filename)
-    //console.log('avc',req.body.id)
-
     let data1 = {_id: req.body.id};
     let data2 = {
       $set: {profilePic: 'http://localhost:3001/images/' + req.file.filename}
     };
     userController.findOneAndUpdate(data1, data2, (err, updatedPhoto) => {
-      if (err) console.log(err);
-      //console.log(updatedPhoto)
+      if (err) {
+        return res.send({data: err});
+      }
       res.send({
         data: updatedPhoto
       });
@@ -372,7 +367,6 @@ router.post('/resend-otp', (req, res) => {
     );
 });
 router.post('/dec-password',(req, res) => {
-  console.log(req.body.password)
   let mykey = crypto.createCipher('aes-128-cbc', 'd6F3Efeq');
       let mystr = mykey.update(req.body.password, 'utf8', 'hex');
       mystr += mykey.final('hex');

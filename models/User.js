@@ -6,7 +6,7 @@ const User = new SChema({
   password: {type: String, required: true},
   category: {type: String, required: true},
   phone: {type: String, unique: true, required: true},
-  twilioStatus: {type: Boolean, default: true},
+  twilioStatus: {type: Boolean, default: false},
   latitude: {type: Number},
   longitude: {type: Number},
   experience: {type: Number},
