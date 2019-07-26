@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 const userController = require('../controllers/userController');
 const authy = require('authy')('onS7TJBOgOzEBMWagLWwuVqHuxx4vMAr');
@@ -9,9 +9,9 @@ let crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const secret = 'MnYusErVoE9eY4f';
 //mail transfer
-const sgMail = require('@sendgrid/mail');
+const sgMail = require("@sendgrid/mail");
 sgMail.setApiKey(
-  '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'
+  "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"
 );
 const storage = multer.diskStorage({
   destination: function(req, file, cb) {
@@ -28,8 +28,8 @@ let eventEmitter = new events.EventEmitter();
 let EventHandler = function mailtransfer(mail, name) {
   const msg = {
     to: mail,
-    from: 'sudhalova@gmail.com',
-    template_id: 'd-07430c527dce4e1d94938f446becb530',
+    from: "sudhalova@gmail.com",
+    template_id: "d-07430c527dce4e1d94938f446becb530",
     dynamic_template_data: {
       name: name
     }
@@ -55,8 +55,8 @@ router.post('/register', async (req, res) => {
       .phones()
       .verification_start(
         phone,
-        '+91',
-        {via: 'sms', locale: 'en', code_length: '6'},
+        "+91",
+        { via: "sms", locale: "en", code_length: "6" },
         (err, otpResponse) => {
           if (err) {
             return res.send({response: err});
@@ -69,7 +69,7 @@ router.post('/register', async (req, res) => {
       );
   });
 });
-router.post('/validate-otp', (req, res) => {
+router.post("/validate-otp", (req, res) => {
   //console.log("body", req.body);
   let otp = req.body.otp;
   let phone = req.body.phone;
@@ -83,15 +83,15 @@ router.post('/validate-otp', (req, res) => {
         response: statusResponse
       });
       if (statusResponse) {
-        let data1 = {phone: req.body.phone};
-        let data2 = {$set: {twilioStatus: 'true'}};
+        let data1 = { phone: req.body.phone };
+        let data2 = { $set: { twilioStatus: "true" } };
         userController.findOneAndUpdate(data1, data2, (err, updateResult) => {
           if (err) throw err;
           //console.log("update result", updateResult);
           if (updateResult.twilioStatus) {
             // Mailtransfer event FIRING
             eventEmitter.emit(
-              'mailtransfer',
+              "mailtransfer",
               updateResult.email,
               updateResult.fullName
             );
@@ -160,19 +160,10 @@ router.post('/login', (req, res) => {
   });
 });
 
-router.get('/details', (req, res) => {
-  let token1 = req.headers['x-access-token'];
-
-  if (!token1)
-    return res.status(401).send({auth: false, message: 'No token provided.'});
-  jwt.verify(token1, secret, (err, data) => {
-    if (err) {
-      return res.send({auth: false, message: 'Token not matched'});
-    }
-    userController.findById(data.id, (err, details) => {
-      res.json({
-        details: details
-      });
+router.get("/details", (req, res) => {
+  userController.find({}, (err, details) => {
+    res.json({
+      details: details
     });
   });
 });
@@ -184,20 +175,16 @@ router.get('/auth2', async (req, res) => {
   const baseURL = 'https://api.cc.email/v3/idfed';
   const authURL =
     baseURL +
-    '?client_id=' +
+    "?client_id=" +
     clientId +
-    '&scope=contact_data&response_type=token' +
-    '&redirect_uri=' +
+    "&scope=contact_data&response_type=token" +
+    "&redirect_uri=" +
     redirectURI;
   res.redirect(authURL);
 });
-
-router.get('/test', (req, res) => {
-  //console.log(req);
-  //fum2yrleTk1WX55gnFbXwn7hQPLU
-});
 router.post('/forgot-password', (req, res) => {
   userController.findOne({phone: req.body.phone}, async (err, user) => {
+    console.log(user);
     if (user) {
       let phone = req.body.phone;
       authy
