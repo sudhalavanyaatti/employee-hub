@@ -95,31 +95,6 @@ router.post("/validate-otp", (req, res) => {
               updateResult.email,
               updateResult.fullName
             );
-            //console.log('hello', updateResult.email);
-            // const data = {
-            //   email_address: {
-            //     address: updateResult.email,
-            //     permission_to_send: 'implicit'
-            //   },
-            //   create_source: 'Account'
-            // };
-            // fetch('https://api.cc.email/v3/contacts', {
-            //   method: 'post',
-            //   body: JSON.stringify(data),
-            //   headers: {
-            //     'cache-control': 'no-cache',
-            //     Authorization: 'Bearer fum2yrleTk1WX55gnFbXwn7hQPLU',
-            //     'Content-Type': 'application/json'
-            //   }
-            // })
-            // .then(res => res.json())
-            // .then(response => {
-            //   res.send({response: response, otpResponse: statusResponse});
-            //   //res.send(response);
-            // })
-            // .catch(err => {
-            //   console.log('err123', err);
-            // });
           }
         });
       }
@@ -161,9 +136,11 @@ router.post("/login", (req, res) => {
 });
 
 router.get("/details", (req, res) => {
+  
   let token = req.headers["authentication-token"];
+  let decoded = jwt.verify(token, secret);
   try {
-    let decoded = jwt.verify(token, secret);
+    
     if (decoded) {
       userController.find({}, (err, details) => {
         console.log(details);
@@ -175,11 +152,13 @@ router.get("/details", (req, res) => {
   } catch (err) {
     if(err)throw err
   }
+
+
   
  
 });
 
-router.post("/find-user", (req, res) => {
+router.post("/find-users", (req, res) => {
   console.log(req.headers["authentication-token"]);
   let token = req.headers["authentication-token"];
   try {
@@ -328,7 +307,7 @@ router.post("/update-password", async (req, res) => {
     });
   });
 });
-router.post("/profile", (req, res) => {
+router.get("/profile", (req, res) => {
   let token = req.headers["authentication-token"];
   try {
     let decoded = jwt.verify(token, secret);
@@ -351,7 +330,21 @@ router.post("/profile", (req, res) => {
 router.post("/update-details", (req, res) => {
   let data = req.body.id;
   let data1 = req.body;
-  
+  //console.log(req.body);let token = req.headers["authentication-token"];
+  try {
+    let decoded = jwt.verify(token, secret);
+    if (decoded) {
+      userController.findByIdAndUpdate(data, data1, (err, updatedUser) => {
+        if (err) console.log(err);
+        res.send({
+          data: updatedUser
+        });
+      });
+    }
+  } catch (err) {
+    if(err)throw err
+  }
+
   userController.findByIdAndUpdate(data, data1, (err, updatedUser) => {
     if (err){
       return res.send({data: err});
