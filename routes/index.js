@@ -346,14 +346,7 @@ router.post("/update-details", (req, res) => {
     if(err)throw err
   }
 
-  userController.findByIdAndUpdate(data, data1, (err, updatedUser) => {
-    if (err){
-      return res.send({data: err});
-    }
-    res.send({
-      data: updatedUser
-    });
-  });
+ 
 });
 router.post("/update-photo", (req, res) => {
   upload(req, res, err => {
