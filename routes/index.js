@@ -329,7 +329,7 @@ router.get("/profile", (req, res) => {
 router.post("/update-details", (req, res) => {
   let data = req.body.id;
   let data1 = req.body;
-  console.log(req.body);
+  //console.log(req.body);
   let token = req.headers["authentication-token"];
   try {
     let decoded = jwt.verify(token, secret);
