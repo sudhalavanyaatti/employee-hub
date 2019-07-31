@@ -70,7 +70,6 @@ router.post('/register', async (req, res) => {
   });
 });
 router.post("/validate-otp", (req, res) => {
-  //console.log("body", req.body);
   let otp = req.body.otp;
   let phone = req.body.phone;
   authy
@@ -330,7 +329,8 @@ router.get("/profile", (req, res) => {
 router.post("/update-details", (req, res) => {
   let data = req.body.id;
   let data1 = req.body;
-  //console.log(req.body);let token = req.headers["authentication-token"];
+  console.log(req.body);
+  let token = req.headers["authentication-token"];
   try {
     let decoded = jwt.verify(token, secret);
     if (decoded) {
@@ -344,21 +344,12 @@ router.post("/update-details", (req, res) => {
   } catch (err) {
     if(err)throw err
   }
-
-  userController.findByIdAndUpdate(data, data1, (err, updatedUser) => {
-    if (err){
-      return res.send({data: err});
-    }
-    res.send({
-      data: updatedUser
-    });
-  });
 });
 router.post("/update-photo", (req, res) => {
   upload(req, res, err => {
     let data1 = {_id: req.body.id};
     let data2 = {
-      $set: { profilePic: "http://localhost:3001/images/" + req.file.filename }
+      $set: { profilePic: "/images/" + req.file.filename }
     };
     userController.findOneAndUpdate(data1, data2, (err, updatedPhoto) => {
       if (err) {

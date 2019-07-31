@@ -9,12 +9,12 @@ const User = new SChema({
   twilioStatus: {type: Boolean, default: false},
   latitude: {type: Number},
   longitude: {type: Number},
-  experience: {type: Number},
+  experience: {type: Number,default:0},
   join_date: {type: Date, default: Date.now},
   city: { type: String },
   state: { type: String },
   zip: { type: Number },
-  profilePic: {type: String,default:'http://localhost:3001/images/default.jpg'}
+  profilePic: {type: String,default:'/images/default.jpg'}
 });
 const Users = mongoose.model("user", User);
 module.exports = Users;
